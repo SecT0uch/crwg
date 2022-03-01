@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import argparse
-import time
 import os
 import sys
 import re
@@ -12,7 +11,7 @@ from progressbar import ProgressBar, Bar, ETA, Percentage
 import codecs
 
 from transliterate.base import TranslitLanguagePack, registry
-from transliterate import translit, get_available_language_codes
+from transliterate import translit
 from transliterate.discover import autodiscover
 
 from collections import Counter
@@ -21,7 +20,7 @@ __author__ = "Igor Ivanov, @lctrcl"
 __license__ = "GPL"
 __version__ = "0.3"
 __banner__ = """Custom Russian Wordlists Generator """ + \
-    __version__ +  """         """
+    __version__ + """         """
 
 dictionary_urls = {'ruscorpora': 'http://www.ruscorpora.ru/ngrams/1grams-3.zip',
                    'opencorpora': 'http://opencorpora.org/files/export/ngrams/unigrams.cyr.lc.bz2'}
@@ -47,11 +46,11 @@ class ReverseInverseRussianLanguagePack(TranslitLanguagePack):
     language_name = "ru_inv_en"
     mapping = (
         u"йцукенгшщзхъфывапролджэёячсмитьбю",
-        u"qwertyuiop[]asdfghjkl;'\zxcvbnm,.",
+        u"qwertyuiop[]asdfghjkl;'\\zxcvbnm,.",
     )
 
-registry.register(ReverseInverseRussianLanguagePack)
 
+registry.register(ReverseInverseRussianLanguagePack)
 
 
 def _reporthook(numblocks, blocksize, filesize, url=None):
@@ -72,15 +71,15 @@ def downloaddictionaries(dictionary_strings):
         print('\n- [*] Downloading {} dictionary\n').format(dictionary_strings)
         name, hdrs = urllib.urlretrieve(url, os.path.basename(
             url), lambda nb, bs, fs, url=url: _reporthook(nb, bs, fs, url))
-    except IOError, e:
-        print "Can't retrieve %r: %s" % (url, e)
+    except IOError as e:
+        print("Can't retrieve %r: %s" % (url, e))
     if dictionary_strings == 'ruscorpora':
         try:
             print(
                 '\n\n- [*] Extracting {} dictionary\n').format(dictionary_strings)
             z = zipfile.ZipFile(os.path.basename(url))
-        except zipfile.error, e:
-            print "Bad zipfile (from %r): %s" % (theurl, e)
+        except zipfile.error as e:
+            print("Bad zipfile (from %r): %s" % (url, e))
             return
         for n in z.namelist():
             print(n)
@@ -126,34 +125,34 @@ def autoclean(dictionary_strings):
     with codecs.open(dictionary_strings + 'dict_stripped', 'w', 'utf-8') as f2:
         if dictionary_strings == 'opencorpora':
             for line in lines:
-                f2.write('%s\n' % unicode(line).split()[0].lower())
+                f2.write('%s\n' % str(line).split()[0].lower())
         elif dictionary_strings == 'ruscorpora':
             for line in lines:
-                f2.write('%s\n' % unicode(line).split()[1].lower())
+                f2.write('%s\n' % str(line).split()[1].lower())
 
     f1.close()
     f2.close()
     return
 
 
-def generatedictionary(source, destination,  gendic):
+def generatedictionary(source, destination, gendic):
     with codecs.open(source, 'r', 'utf-8') as f:
         lines = f.read().splitlines()
     print('- [*] Making {} dictionary: ').format(gendic)
     # TODO
     if gendic == 'tran5l1t':
-        print "Not implemented yet"
+        print("Not implemented yet")
         return
     if gendic == 'translit':
         with codecs.open(destination, 'a+', 'utf-8') as myfile:
             for line in pbar(lines):
                 myfile.write(
-                    translit(unicode(line), 'ru', reversed=True) + '\n')
+                    translit(str(line), 'ru', reversed=True) + '\n')
 
     if gendic == 'ru_inv_en':
         with codecs.open(destination, 'a+', 'utf-8') as myfile:
             for line in pbar(lines):
-                myfile.write(translit(unicode(line), gendic) + '\n')
+                myfile.write(translit(str(line), gendic) + '\n')
 
     myfile.close()
     f.close()
@@ -168,19 +167,19 @@ def compare_two_password_bases(source, destination, dictionary):
         leaked_passwords = f.read().splitlines()
     with codecs.open(translit_dictionary_name, 'r', 'utf-8') as content_file:
         translit_dictionary = content_file.read().splitlines()
-    print "- [*] Generating statistics: "
+    print("- [*] Generating statistics: ")
     s = set(translit_dictionary)
     b3 = [val for val in pbar(leaked_passwords) if val in s]
 
     count = Counter(b3)
 
-    print "- [*] Writing to file: "
+    print("- [*] Writing to file: ")
     with codecs.open(result_statistics_name, 'w+', 'utf-8') as myfile:
         for k, v in count.most_common():
             myfile.write(
                 '%d ' % v + k + ' ' + translit(k, 'ru_inv_en', reversed=True) + '\n')
     myfile.close()
-    print "Done"
+    print("Done")
     return
 
 
@@ -204,7 +203,7 @@ def main():
         parser.print_help()
         sys.exit(1)
     args = parser.parse_args()
-    print __banner__
+    print(__banner__)
     if args.downloaddictionaries:
         downloaddictionaries(args.downloaddictionaries)
 
