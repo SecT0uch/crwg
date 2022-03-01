@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 import re
-import urllib
+import urllib.request
 import zipfile
 import bz2
 from progressbar import ProgressBar, Bar, ETA, Percentage
@@ -19,8 +19,7 @@ from collections import Counter
 __author__ = "Igor Ivanov, @lctrcl"
 __license__ = "GPL"
 __version__ = "0.3"
-__banner__ = """Custom Russian Wordlists Generator """ + \
-    __version__ + """         """
+__banner__ = """Custom Russian Wordlists Generator """ + __version__ + """         """
 
 dictionary_urls = {'ruscorpora': 'http://www.ruscorpora.ru/ngrams/1grams-3.zip',
                    'opencorpora': 'http://opencorpora.org/files/export/ngrams/unigrams.cyr.lc.bz2'}
@@ -68,15 +67,14 @@ def downloaddictionaries(dictionary_strings):
     url = dictionary_urls[dictionary_strings]
 
     try:
-        print('\n- [*] Downloading {} dictionary\n').format(dictionary_strings)
-        name, hdrs = urllib.urlretrieve(url, os.path.basename(
+        print(f'\n- [*] Downloading {dictionary_strings} dictionary\n')
+        name, hdrs = urllib.request.urlretrieve(url, os.path.basename(
             url), lambda nb, bs, fs, url=url: _reporthook(nb, bs, fs, url))
     except IOError as e:
         print("Can't retrieve %r: %s" % (url, e))
     if dictionary_strings == 'ruscorpora':
         try:
-            print(
-                '\n\n- [*] Extracting {} dictionary\n').format(dictionary_strings)
+            print(f'\n\n- [*] Extracting {dictionary_strings} dictionary\n')
             z = zipfile.ZipFile(os.path.basename(url))
         except zipfile.error as e:
             print("Bad zipfile (from %r): %s" % (url, e))
@@ -88,23 +86,23 @@ def downloaddictionaries(dictionary_strings):
             if not os.path.isdir(destdir):
                 os.makedirs(destdir)
             data = z.read(n)
-            f = open(dest, 'w')
+            f = open(dest, 'wb')
             f.write(data)
             f.close()
         z.close()
         os.unlink(name)
     if dictionary_strings == 'opencorpora':
-        print('\n- [*] Extracting {} dictionary\n').format(dictionary_strings)
+        print(f'\n- [*] Extracting {dictionary_strings} dictionary\n')
         uncompresseddata = bz2.BZ2File(os.path.basename(url)).read()
         zname = os.path.splitext(os.path.basename(url))[0]
-        f = open(zname, 'w')
+        f = open(zname, 'wb')
         f.write(uncompresseddata)
         f.close()
     return
 
 
 def autoclean(dictionary_strings):
-    print('\n- [*] Autocleaning {} dictionary').format(dictionary_strings)
+    print(f'\n- [*] Autocleaning {dictionary_strings} dictionary')
     if dictionary_strings == 'opencorpora':
         name = os.path.splitext(
             os.path.basename(dictionary_urls[dictionary_strings]))[0]
@@ -138,7 +136,7 @@ def autoclean(dictionary_strings):
 def generatedictionary(source, destination, gendic):
     with codecs.open(source, 'r', 'utf-8') as f:
         lines = f.read().splitlines()
-    print('- [*] Making {} dictionary: ').format(gendic)
+    print(f'- [*] Making {gendic} dictionary: ')
     # TODO
     if gendic == 'tran5l1t':
         print("Not implemented yet")
